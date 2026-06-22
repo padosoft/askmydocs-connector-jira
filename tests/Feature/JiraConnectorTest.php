@@ -229,7 +229,7 @@ final class JiraConnectorTest extends TestCase
 
         $dispatch = $this->spy->dispatches[0];
         $this->assertSame('[ENG-1] Implement connector', $dispatch['title']);
-        $this->assertSame('connector-jira', $dispatch['projectKey']);
+        $this->assertSame('default', $dispatch['projectKey']);
         $this->assertStringContainsString('/jira/eng/eng-1.md', $dispatch['relativePath']);
 
         $metadata = $dispatch['metadata'];

@@ -252,8 +252,7 @@ class JiraConnector extends BaseConnector
         }
 
         $installation = $this->loadInstallation($installationId);
-        $config = (array) ($installation->config_json ?? []);
-        $projectKey = (string) ($config['project_key'] ?? ('connector-'.$this->key()));
+        $projectKey = $this->resolveProjectKey($installation);
 
         $added = 0;
         $errors = [];
@@ -339,8 +338,7 @@ class JiraConnector extends BaseConnector
         }
 
         $installation = $this->loadInstallation($installationId);
-        $config = (array) ($installation->config_json ?? []);
-        $projectKey = (string) ($config['project_key'] ?? ('connector-'.$this->key()));
+        $projectKey = $this->resolveProjectKey($installation);
 
         $updated = 0;
         $errors = [];
