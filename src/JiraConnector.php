@@ -12,11 +12,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Padosoft\AskMyDocsConnectorBase\BaseConnector;
+use Padosoft\AskMyDocsConnectorBase\Contracts\DeclaresProvenance;
 use Padosoft\AskMyDocsConnectorBase\Exceptions\ConnectorApiException;
 use Padosoft\AskMyDocsConnectorBase\Exceptions\ConnectorAuthException;
 use Padosoft\AskMyDocsConnectorBase\Exceptions\ConnectorPaginationLimitException;
 use Padosoft\AskMyDocsConnectorBase\HealthStatus;
 use Padosoft\AskMyDocsConnectorBase\Models\ConnectorInstallation;
+use Padosoft\AskMyDocsConnectorBase\ProvenanceTier;
 use Padosoft\AskMyDocsConnectorBase\Support\Metadata\SourceAwareMetadataBuilder;
 use Padosoft\AskMyDocsConnectorBase\Support\Metadata\VendorMimeSelector;
 use Padosoft\AskMyDocsConnectorBase\SyncResult;
@@ -65,7 +67,7 @@ use Padosoft\AskMyDocsConnectorJira\Jira\JqlBuilder;
  *   - CONNECTOR_JIRA_CLIENT_SECRET
  *   - CONNECTOR_JIRA_REDIRECT_URI
  */
-class JiraConnector extends BaseConnector
+class JiraConnector extends BaseConnector implements DeclaresProvenance
 {
     /**
      * Statuses that we treat as "inactive" for the
@@ -437,6 +439,24 @@ class JiraConnector extends BaseConnector
 
         $this->vault->clearCredentials($installationId);
         $this->emitAudit('disconnected', installationId: $installationId);
+    }
+
+    /**
+     * Content here was written inside the organisation.
+     *
+     * This connector reads a Jira site the organisation administers — a system whose write access the
+     * organisation grants. Whoever authored a document had to be given the
+     * ability to author it, which is exactly the property `TrustedInternal`
+     * records. Contrast the IMAP connector, whose mailbox accepts a message
+     * from anyone who knows the address.
+     *
+     * "Trusted" is a statement about authorship, not about correctness or
+     * curation. An internal page can be wrong, stale or unreviewed; that is
+     * the Auto-Wiki curation tier's question, and it is a different one.
+     */
+    public function provenanceTier(int $installationId): ProvenanceTier
+    {
+        return ProvenanceTier::TrustedInternal;
     }
 
     public function health(int $installationId): HealthStatus
